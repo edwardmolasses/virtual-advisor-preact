@@ -88,7 +88,9 @@ const CallOut = props => {
 	const [slideDirection, setSlideDirection] = useState("slideUp");
 	const [visibility, setVisibility] = useState("visible");
 	const [isCalloutClosed] = useState(
-	  Boolean(window.sessionStorage.getItem(props.sessionStorageItem || "callout-session-closed"))
+		(typeof window !== "undefined")
+			? Boolean(window.sessionStorage.getItem(props.sessionStorageItem || "callout-session-closed"))
+			: false
 	);
 	const [modalIsShown, toggleModal] = useState(false);
 	const [modalCaller, setModalCaller] = useState();
@@ -102,7 +104,9 @@ const CallOut = props => {
 		setSlideDirection("slideDown");
 		setVisibility("hidden");
 		toggleModal(false);
-		window.sessionStorage.setItem(props.sessionStorageItem || "callout-session-closed", "true");
+		if (!!window) {
+			window.sessionStorage.setItem(props.sessionStorageItem || "callout-session-closed", "true");
+		}
 	};
 
 	return (
