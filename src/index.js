@@ -85,24 +85,26 @@ const figcaption = {
   };
 
 const CallOut = props => {
+	const isCalloutSessionClosed = (typeof window !== "undefined") && Boolean(window.sessionStorage.getItem(props.sessionStorageItem || "callout-session-closed"));
 	const [slideDirection, setSlideDirection] = useState("slideUp");
 	const [visibility, setVisibility] = useState("visible");
-	const [isCalloutClosed] = useState(
-		(typeof window !== "undefined")
-			? Boolean(window.sessionStorage.getItem(props.sessionStorageItem || "callout-session-closed"))
-			: false
-	);
+	const [isCalloutClosed] = useState(isCalloutSessionClosed);
 	const [modalIsShown, toggleModal] = useState(false);
 	const [modalCaller, setModalCaller] = useState();
+
+	const closeCallout = () => {
+		setSlideDirection("slideDown");
+		setVisibility("hidden");    
+	}
 
 	const handleClick = e => {
 		setModalCaller(e.currentTarget);
 		toggleModal(!modalIsShown);
+		closeCallout();
 	};
 	
 	const handleCloseButtonClick = () => {
-		setSlideDirection("slideDown");
-		setVisibility("hidden");
+		closeCallout();
 		toggleModal(false);
 		if (!!window) {
 			window.sessionStorage.setItem(props.sessionStorageItem || "callout-session-closed", "true");
@@ -118,7 +120,13 @@ const CallOut = props => {
 			  <Text>{props.text}</Text>
 			</CalloutInnerWrapper>
 			{props.iframeUrl ? (
-			  <Modal modalIsShown={modalIsShown} toggleModal={toggleModal} modalCaller={modalCaller} iframe>
+			  <Modal 
+			  	modalIsShown={modalIsShown} 
+			  	toggleModal={toggleModal} 
+			  	modalCaller={modalCaller} 
+			  	contentHeight={props.contentHeight || 500} 
+			  	iframe
+			>
 				<iframe src={props.iframeUrl}></iframe>
 			  </Modal>
 			) : (
@@ -129,25 +137,43 @@ const CallOut = props => {
 	  );
 }
 
-const App = () => (
-	<CallOut
-	  text="Questions about product or sizing?"
-	  isActive={true}
-	  iframeUrl="http://landing-pages.us-west-2.elasticbeanstalk.com/outdoor/ca/en/help/va-modal/"
-	  sessionStorageItem="callout-session-closed--va"
-	>
-	  <figure>
-		<Imgix
-		  src={
-			"https://images-dynamic-arcteryx.imgix.net/virtual-advisor-callout/a6ff6a61-6c57-44ec-bdb0-dcae77bb05d6.png"
-		  }
-		  height={83}
-		  imgixParams={{ auto: "format,compress", q: 75 }}
-		  htmlAttributes={{ alt: "Virtual Advisor" }}
-		/>
-		<figcaption style={figcaption}>Virtual Advisor</figcaption>
-	  </figure>
-	</CallOut>
-  );
+const VirtualAdvisor = props => {
+	return props.isEnabled && (
+		<CallOut
+			text="Questions about product or sizing?"
+			iframeUrl="http://landing-pages.us-west-2.elasticbeanstalk.com/outdoor/ca/en/help/va-modal/"
+			sessionStorageItem="callout-session-closed--va"
+		>
+			<figure>
+				<Imgix
+					src={"https://images-dynamic-arcteryx.imgix.net/virtual-advisor-callout/a6ff6a61-6c57-44ec-bdb0-dcae77bb05d6.png"}
+					height={83}
+					imgixParams={{ auto: "format,compress", q: 75 }}
+					htmlAttributes={{ alt: "Virtual Advisor" }}
+				/>
+				<figcaption style={figcaption}>Virtual Advisor</figcaption>
+			</figure>
+		</CallOut>
+  	);
+}
+
+const App = () => {
+	const validCountries = ["CA", "US", "GB"];
+	const validLangs = ["EN"];
+	const validMarkets = ["OUTDOOR"];
+	const isProductPageValid = (country, language, market) =>
+	  validCountries.includes(country) && validLangs.includes(language) && validMarkets.includes(market);
+
+	const isCalloutEnabled = 
+		(typeof window !== "undefined") && 
+		window?.ARCTERYX?.WEBSITE_SETTINGS &&
+		isProductPageValid(
+			window.ARCTERYX.WEBSITE_SETTINGS.COUNTRY,
+			window.ARCTERYX.WEBSITE_SETTINGS.LANG,
+			window.ARCTERYX.WEBSITE_SETTINGS.MARKET
+		);
+
+	return <VirtualAdvisor isEnabled={isCalloutEnabled} />;
+}
 
 export default App;

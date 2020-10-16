@@ -22,7 +22,7 @@
     "sirv-cli": "^1.0.3"
   },
   "dependencies": {
-    "@arcteryx/components-modal": "^2.0.4",
+    "@arcteryx/components-modal": "^2.1.0",
     "preact": "^10.1.0",
     "preact-render-to-string": "^5.1.2",
     "react-imgix": "^9.0.2",
